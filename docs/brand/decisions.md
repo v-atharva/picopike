@@ -44,10 +44,14 @@ Concept numbers refer to the frozen exploration round (`assets/logo-concepts/rou
 | Generated logos | `assets/logo*.svg`, `assets/icon*.svg` (do not hand-edit) |
 | Exploration archive | `assets/logo-concepts/` |
 | Private gallery of all 50 | <https://claude.ai/artifact/7SSGmXER99Kr1saRnkFEXf> (owner-only; share from the page's Share menu) |
+| Figma file (editable vectors) | <https://www.figma.com/design/i0EaCA6xcJLx9vScEI7NeF> in the "Atharva's team" drafts. Page **Logo**: light and dark lockups, icons, colour variables. Page **Shortlist**: the seven runners-up. |
+
+The Figma file is a visual sandbox, not the source of truth. The SVGs in it are imports of the generated assets, so a change made only in Figma must be carried back into `brand/logo.spec.json` (or `tools/logo/parts.py`) and rebuilt, otherwise the next `build` will overwrite it.
 
 ## Open items
 
-- [ ] Figma: authenticate the Figma connector (`/mcp`, then "claude.ai Figma") and create a Figma file from the chosen SVGs so the design can be refined visually. Until then the SVGs are importable into Figma by drag and drop.
+- [x] Figma file created from the chosen SVGs (see above). The colour tokens are variables grouped `light/*` and `dark/*` in one collection, because the Starter plan allows only one variable mode. On a paid plan, convert them to one collection with Light and Dark modes.
+- [ ] Decide where the Figma file should live permanently (move it from drafts into a team project).
 - [ ] Outline the wordmark text.
 - [ ] Add a favicon export and a social preview image (1280x640).
 - [ ] Decide whether to keep the shield as a secondary container variant.

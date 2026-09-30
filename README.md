@@ -7,86 +7,68 @@
 
 **Tiny classifier. Outsized sting.**
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+Prompt-injection, jailbreak and harmful-request detection for LLM inputs.
+A small local model screens every request in milliseconds; a larger judge is consulted only when it is unsure.
 
 [![CI](https://github.com/v-atharva/picopike/actions/workflows/ci.yml/badge.svg)](https://github.com/v-atharva/picopike/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/python-3.13-3776AB?logo=python&logoColor=white)
 ![Status](https://img.shields.io/badge/status-pre--alpha-orange)
-![Visibility](https://img.shields.io/badge/repo-private-lightgrey)
-![Code style](https://img.shields.io/badge/code%20style-ruff-261230)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 
 [Overview](#overview) ·
-[Features](#features) ·
 [Architecture](#architecture) ·
-[Quick start](#quick-start) ·
-[Benchmarks](#benchmarks) ·
+[Getting started](#getting-started) ·
+[Benchmark](#benchmark) ·
 [Roadmap](#roadmap)
 
 </div>
 
 ---
 
-## Table of contents
-
-- [Overview](#overview)
-- [Why PicoPike](#why-picopike)
-- [Features](#features)
-- [Architecture](#architecture)
-- [Quick start](#quick-start)
-- [Usage](#usage)
-- [Benchmarks](#benchmarks)
-- [Project layout](#project-layout)
-- [Roadmap](#roadmap)
-- [Contributing](#contributing)
-- [Security](#security)
-- [License](#license)
-- [Acknowledgements](#acknowledgements)
-
 ## Overview
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+PicoPike sits in front of a language model and decides whether an incoming prompt is safe to pass on. It is built as a cascade, so the expensive step only runs when it is needed:
 
-> **Status:** pre-alpha. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+1. **Rules** catch the obvious cases deterministically, in well under a millisecond.
+2. **The pike model**, a compact multilingual encoder with calibrated heads, scores every request on a laptop CPU in single-digit milliseconds.
+3. **An LLM judge** is called only when the pike model's score falls inside an uncertainty band.
 
-## Why PicoPike
+The lane outputs are fused into one calibrated probability and an `ALLOW`, `HOLD` or `BLOCK` decision. Every step, with its raw output, timing and cost, is written to a JSONL trace.
 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+> **Status: pre-alpha.** The repository, tooling and CI are in place. The detectors, benchmark and API described below are being built; nothing here is ready for production traffic.
 
-| | Lorem | Ipsum | Dolor |
-|---|---|---|---|
-| Latency | Lorem ipsum | Dolor sit | Amet |
-| Cost | Consectetur | Adipiscing | Elit |
-| Calibration | Sed do | Eiusmod | Tempor |
+## Why another detector
 
-## Features
+Strong open guard models already exist. What is missing is evidence that holds up outside English and under attack:
 
-- **Lorem ipsum dolor** — sit amet, consectetur adipiscing elit, sed do eiusmod tempor.
-- **Incididunt ut labore** — et dolore magna aliqua, ut enim ad minim veniam.
-- **Quis nostrud** — exercitation ullamco laboris nisi ut aliquip ex ea commodo.
-- **Duis aute irure** — dolor in reprehenderit in voluptate velit esse cillum.
-- **Excepteur sint** — occaecat cupidatat non proident, sunt in culpa.
+- **Calibrated in every language.** Scores are temperature-scaled per language, so a threshold means the same thing in English, Russian and Chinese.
+- **Honest under attack.** The benchmark reports calibration on adaptively attacked prompts, not only on clean ones.
+- **Cheap by default.** Most traffic never leaves the machine; the judge is a fallback, not the main path.
+- **Benchmark first.** Every detector, including PicoPike, is a row in the same multi-axis leaderboard. If a larger baseline wins on accuracy, the report says so and shows the latency and cost trade-off.
 
 ## Architecture
 
 ```text
-            ┌───────────────┐
-  input ──▶ │   Detectors   │  lane A · lane B · lane C   (lorem ipsum)
-            └───────┬───────┘
-                    ▼
-            ┌───────────────┐
-            │    Fusion     │  stacker + calibration      (lorem ipsum)
-            └───────┬───────┘
-                    ▼
-            ┌───────────────┐
-            │  Score + Trace│  calibrated score, JSONL trace
-            └───────────────┘
+request ─▶ api      POST /v1/classify {text, mode, lang?}
+             │
+             ▼
+           router   1. rules          deterministic        ~0.1 ms   free
+                    2. pike           local model, always  ~5 ms     free
+                    3. judge          only when uncertain  ~1-2 s    metered
+                    4. fusion         stacker + calibration → score, decision
+             │
+             ▼
+           trace    JSONL: every lane's output, timings and cost
+
+offline:   bench    datasets → adaptive attacks → cached detector runs → metrics → leaderboard
+           train    pike heads · fusion stacker · per-language calibration
 ```
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. See [`docs/architecture`](docs/architecture) for details.
+Two serving modes: `fast` runs rules and the pike model only; `auto` adds the judge for uncertain requests, within a budget guard. A lane that fails or times out degrades the result explicitly and never fails the request.
 
-## Quick start
+## Getting started
 
-> Requires Python 3.13 and [uv](https://docs.astral.sh/uv/).
+Requires Python 3.13 and [uv](https://docs.astral.sh/uv/).
 
 ```bash
 git clone git@github.com:v-atharva/picopike.git
@@ -95,56 +77,49 @@ uv sync
 uv run pytest
 ```
 
-## Usage
+The command line (`picopike serve`, `picopike bench run`, `picopike bench report`) arrives with phase 1.
 
-```python
-# Lorem ipsum: illustrative only, the API does not exist yet.
-from picopike import __version__
+## Benchmark
 
-print(__version__)
-```
+No results yet. The leaderboard will be produced by `picopike bench report` from cached detector runs, so every number in it is reproducible without re-spending API budget.
 
-## Benchmarks
+| Axis | What is measured |
+|---|---|
+| Detection | AUROC, F1 at the policy threshold, FPR at 95% TPR |
+| Over-defense | Share of safe-but-suspicious prompts that are blocked |
+| Calibration | Expected calibration error on clean and on attacked prompts |
+| Speed and cost | p50 and p99 latency on an Apple M2 CPU; cost per 1,000 decisions |
+| Breakdown | Per dataset and per language (English, Russian, Chinese) |
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Methodology and datasets live in [`evals/`](evals).
-
-| Detector | Precision | Recall | p50 latency |
-|---|---|---|---|
-| Lorem | — | — | — |
-| Ipsum | — | — | — |
-| Dolor | — | — | — |
+Evaluation sets are held out from training, near-duplicates are removed, and the report prints the remaining train/test overlap. Datasets keep their own licences and are never redistributed from this repository.
 
 ## Project layout
 
 ```text
 .
-├── src/picopike/     # library code (detectors, fusion, api, trace)
-├── tests/            # unit and integration tests
-├── evals/            # datasets, eval harness, reports
-├── docs/             # architecture notes, ADRs, guides
-├── scripts/          # developer utilities
-├── assets/           # logo and images
-└── .github/          # CI, issue and PR templates
+├── src/picopike/   the library: detectors, fusion, API, trace
+├── tests/          unit tests (CI) and integration tests (local, -m integration)
+├── evals/          benchmark datasets and reports (contents are not committed)
+├── brand/          logo spec and bundled fonts
+├── tools/          repository tooling, including the logo builder
+├── assets/         logo, icons, favicons and the social preview
+└── scripts/        developer utilities
 ```
 
 ## Roadmap
 
-- [ ] **Phase 1** — Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-- [ ] **Phase 2** — Sed do eiusmod tempor incididunt ut labore et dolore.
-- [ ] **Phase 3** — Ut enim ad minim veniam, quis nostrud exercitation.
+- [ ] **Phase 1: detect and measure.** Detector protocol, rules, the pike model, the LLM judge, fusion and calibration, the serving API, and the multi-axis benchmark with adaptive attacks.
+- [ ] **Phase 2: review and improve.** A review dashboard for held decisions, with a label-and-retrain loop.
+- [ ] **Phase 3: watch the reasoning.** Monitoring the chain-of-thought of open reasoning models, not just their inputs.
 
 ## Contributing
 
-Lorem ipsum dolor sit amet. Read [CONTRIBUTING.md](CONTRIBUTING.md) and the [Code of Conduct](CODE_OF_CONDUCT.md) before opening a pull request.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, checks and conventions, and the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Security
 
-Lorem ipsum dolor sit amet. Please report vulnerabilities as described in [SECURITY.md](SECURITY.md).
+Please report vulnerabilities, and inputs that get past the detector, as described in [SECURITY.md](SECURITY.md).
 
 ## License
 
-Lorem ipsum. License to be decided; all rights reserved for now.
-
-## Acknowledgements
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+Apache License 2.0; see [LICENSE](LICENSE). Datasets used by the benchmark keep their own licences and are not redistributed here. The bundled Inter font is under the SIL Open Font License ([brand/fonts/OFL.txt](brand/fonts/OFL.txt)).

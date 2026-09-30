@@ -8,5 +8,11 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
-- Initial project scaffold.
-- Logo: light and dark wordmark and icon variants, plus the concept archive.
+- Project scaffold: `src/` package layout, tests, evaluation folders, and CI with ruff, strict mypy and pytest.
+- Logo: light and dark lockups and icons built from `brand/logo.spec.json`, with a drift check in CI.
+- Outlined wordmark (bundled Inter, SIL Open Font License), favicon set, and a 1280x640 social preview.
+- Apache-2.0 licence.
+
+### Changed
+
+- CI uses `actions/checkout` v7 and `astral-sh/setup-uv` v7.

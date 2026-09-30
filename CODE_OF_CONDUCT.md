@@ -1,6 +1,7 @@
 # Code of conduct
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore
-et dolore magna aliqua. Be respectful, be constructive, assume good faith.
+This project follows the [Contributor Covenant, version 2.1](https://www.contributor-covenant.org/version/2/1/code_of_conduct/).
 
-Report concerns to hello@atharvav.com.
+In short: be respectful, give constructive feedback, assume good faith, and keep discussion focused on the work. Harassment of any kind is not tolerated.
+
+Report unacceptable behaviour to **hello@atharvav.com**. Reports are handled confidentially.

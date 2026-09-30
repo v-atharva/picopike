@@ -1,0 +1,19 @@
+{
+  "name": "PicoPike",
+  "concept": 16,
+  "mark": {
+    "target": "chip",
+    "pike": "spear",
+    "angle": 22,
+    "impact": "cracks",
+    "flip": true,
+    "container": "square"
+  },
+  "wordmark": {
+    "style": "caps"
+  },
+  "palettes": {
+    "light": { "ink": "#0F172A", "accent": "#F59E0B", "bg": "#FFFFFF", "tint": "#F1F5F9" },
+    "dark": { "ink": "#E2E8F0", "accent": "#F59E0B", "bg": "#0B1220", "tint": "#16203A" }
+  }
+}

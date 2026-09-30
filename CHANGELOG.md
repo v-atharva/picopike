@@ -9,3 +9,4 @@ All notable changes to this project are documented here. The format follows
 ### Added
 
 - Initial project scaffold.
+- Logo: light and dark wordmark and icon variants, plus the concept archive.

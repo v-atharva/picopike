@@ -1,0 +1,130 @@
+"""Compose parts into a finished mark, wordmark and full lockup."""
+
+# ruff: noqa: E501  (SVG markup is clearer unbroken)
+
+from __future__ import annotations
+
+import math
+
+from tools.logo.model import Container, Layout, MarkSpec, Palette, WordmarkSpec, WordmarkStyle
+from tools.logo.parts import (
+    PIKE_LENGTH,
+    TARGET_BBOX,
+    TARGETS,
+    BBox,
+    impact,
+    pike,
+)
+
+MARK_BOX = 130  # the square the mark (and icon) is drawn in
+SHIELD_PATH = "M65 5 L113 19 V66 C113 97 91 117 65 125 C39 117 17 97 17 66 V19 Z"
+
+SANS = "Inter, 'Helvetica Neue', Helvetica, Arial, sans-serif"
+MONO = "'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace"
+
+# layout -> (width, height)
+CANVAS: dict[Layout, tuple[int, int]] = {
+    "icon": (130, 130),
+    "stacked": (260, 210),
+    "horizontal": (480, 130),
+}
+
+
+def _container(kind: Container, tint: str) -> tuple[str, tuple[int, int, int]]:
+    """Container SVG plus the (fit box, centre x, centre y) the mark is fitted into."""
+    if kind == "circle":
+        return f'<circle cx="65" cy="65" r="62" fill="{tint}"/>', (80, 65, 65)
+    if kind == "square":
+        return f'<rect x="3" y="3" width="124" height="124" rx="30" fill="{tint}"/>', (88, 65, 65)
+    if kind == "shield":
+        return f'<path d="{SHIELD_PATH}" fill="{tint}"/>', (72, 65, 59)
+    return "", (114, 65, 65)
+
+
+def _mark_group(mark: MarkSpec, pal: Palette, paper: str) -> tuple[str, BBox]:
+    """The target, impact and pike (flipped if asked) and their combined bounding box."""
+    target_svg, (px, py) = TARGETS[mark.target](pal.ink, pal.accent, paper)
+    body = (
+        target_svg
+        + impact(mark.impact, px, py, mark.angle, paper)
+        + f'<g transform="translate({px} {py}) rotate({-mark.angle})">'
+        f"{pike(mark.pike, pal.accent, paper)}</g>"
+    )
+    x0, y0, x1, y1 = TARGET_BBOX[mark.target]
+    theta = math.radians(mark.angle)
+    tail_x = px - (PIKE_LENGTH + 10) * math.cos(theta)
+    tail_y = py + (PIKE_LENGTH + 10) * math.sin(theta)
+    x0, y1 = min(x0, tail_x - 4), max(y1, tail_y + 4)
+    if mark.flip:
+        body = f'<g transform="translate({MARK_BOX} 0) scale(-1 1)">{body}</g>'
+        x0, x1 = MARK_BOX - x1, MARK_BOX - x0
+    return body, (x0, y0, x1, y1)
+
+
+def render_mark(mark: MarkSpec, pal: Palette) -> str:
+    """The container plus the mark, auto-fitted and centred in a 130x130 box."""
+    container_svg, (box, cx, cy) = _container(mark.container, pal.tint)
+    paper = pal.tint if mark.container != "none" else pal.bg
+    body, (x0, y0, x1, y1) = _mark_group(mark, pal, paper)
+    scale = box / max(x1 - x0, y1 - y0)
+    tx, ty = cx - scale * (x0 + x1) / 2, cy - scale * (y0 + y1) / 2
+    return (
+        f'{container_svg}<g transform="translate({tx:.1f} {ty:.1f}) scale({scale:.3f})">{body}</g>'
+    )
+
+
+def render_wordmark(style: WordmarkStyle, pal: Palette, layout: Layout) -> str:
+    ink, acc = pal.ink, pal.accent
+    stacked = layout == "stacked"
+    x, y, anchor = (130, 192, "middle") if stacked else (140, 78, "start")
+    pos = f'x="{x}" y="{y}" text-anchor="{anchor}"'
+    if style == "light-bold":
+        size = 42 if stacked else 46
+        return (
+            f'<text {pos} font-family="{SANS}" font-size="{size}" letter-spacing="-1" fill="{ink}">'
+            f'<tspan font-weight="300">Pico</tspan><tspan font-weight="800">Pike</tspan></text>'
+        )
+    if style == "caps":
+        size = 32 if stacked else 38
+        return (
+            f'<text {pos} font-family="{SANS}" font-size="{size}" font-weight="700" letter-spacing="1" '
+            f'fill="{ink}">PICO<tspan fill="{acc}">PIKE</tspan></text>'
+        )
+    if style == "mono":
+        size = 34 if stacked else 40
+        return (
+            f'<text {pos} font-family="{MONO}" font-size="{size}" fill="{acc}">pico'
+            f'<tspan font-weight="700" fill="{ink}">pike</tspan></text>'
+        )
+    size = 38 if stacked else 44
+    return (
+        f'<text {pos} font-family="{SANS}" font-size="{size}" letter-spacing="-0.5" fill="{ink}">'
+        f'<tspan font-weight="300">pico</tspan><tspan font-weight="800" fill="{acc}">/</tspan>'
+        f'<tspan font-weight="800">pike</tspan></text>'
+    )
+
+
+def render_logo(
+    mark: MarkSpec,
+    wordmark: WordmarkSpec,
+    pal: Palette,
+    layout: Layout,
+    *,
+    background: bool,
+) -> str:
+    """A complete, standalone SVG document. ``background=False`` leaves the canvas transparent."""
+    width, height = CANVAS[layout]
+    mark_svg = render_mark(mark, pal)
+    if layout == "icon":
+        body = mark_svg
+    elif layout == "stacked":
+        body = f'<g transform="translate(65 4)">{mark_svg}</g>{render_wordmark(wordmark.style, pal, layout)}'
+    else:
+        body = mark_svg + render_wordmark(wordmark.style, pal, layout)
+    backdrop = (
+        f'\n  <rect width="{width}" height="{height}" fill="{pal.bg}"/>' if background else ""
+    )
+    return (
+        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}" '
+        f'width="{width}" height="{height}" role="img" aria-label="PicoPike">{backdrop}\n  {body}\n</svg>\n'
+    )

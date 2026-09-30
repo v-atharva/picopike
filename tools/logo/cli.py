@@ -17,7 +17,7 @@ CONCEPTS_DIR = ASSETS / "logo-concepts" / "round-2"
 
 
 def official_assets(spec: BrandSpec) -> dict[Path, str]:
-    """Every generated file under ``assets/`` and its exact expected contents."""
+    """Every built file under ``assets/`` and its exact expected contents."""
     files: dict[Path, str] = {}
     for suffix, palette in (("", spec.light), ("-dark", spec.dark)):
         files[ASSETS / f"logo{suffix}.svg"] = render_logo(

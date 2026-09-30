@@ -116,6 +116,7 @@ def plan() -> list[Concept]:
 
 
 def render_concept(concept: Concept) -> str:
+    """One concept as a full SVG document on its own background."""
     return render_logo(
         concept.mark, concept.wordmark, concept.palette, concept.layout, background=True
     )

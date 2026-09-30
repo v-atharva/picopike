@@ -6,6 +6,7 @@ build-backend = "hatchling.build"
 name = "picopike"
 version = "0.0.0"
 description = "Tiny classifier, outsized sting."
+authors = [{ name = "Atharva Vaidya", email = "hello@atharvav.com" }]
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = []

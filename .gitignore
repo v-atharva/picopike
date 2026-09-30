@@ -26,6 +26,9 @@ evals/reports/*
 *.bin
 models/
 
+# Local-only working files (notes, context). Never committed.
+/local/
+
 # Editors / OS
 .DS_Store
 .idea/

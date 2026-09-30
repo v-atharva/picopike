@@ -21,6 +21,7 @@ PIKE_LENGTH = 41
 
 
 def _bot(ink: str, acc: str, paper: str) -> tuple[str, tuple[int, int]]:
+    """Robot head: antenna, rounded body, side ear, two eyes and a mouth."""
     return (
         f'<line x1="64" y1="38" x2="64" y2="27" stroke="{ink}" stroke-width="3.5" stroke-linecap="round"/>'
         f'<circle cx="64" cy="22" r="4.5" fill="{acc}"/>'
@@ -33,6 +34,7 @@ def _bot(ink: str, acc: str, paper: str) -> tuple[str, tuple[int, int]]:
 
 
 def _rack(ink: str, acc: str, paper: str) -> tuple[str, tuple[int, int]]:
+    """Server rack: a tall body split into three units, each with a status light and slot."""
     units = "".join(
         f'<circle cx="51" cy="{y}" r="3" fill="{acc}"/>'
         f'<line x1="61" y1="{y}" x2="80" y2="{y}" stroke="{paper}" stroke-width="3" stroke-linecap="round"/>'
@@ -49,6 +51,7 @@ def _rack(ink: str, acc: str, paper: str) -> tuple[str, tuple[int, int]]:
 
 
 def _datacenter(ink: str, acc: str, paper: str) -> tuple[str, tuple[int, int]]:
+    """Data-center block: a window grid (two lit) on a base slab."""
     windows = ""
     for row in range(4):
         for col in range(3):
@@ -62,6 +65,7 @@ def _datacenter(ink: str, acc: str, paper: str) -> tuple[str, tuple[int, int]]:
 
 
 def _chip(ink: str, acc: str, paper: str) -> tuple[str, tuple[int, int]]:
+    """Processor: square package with pins on three sides and a lit core."""
     pins = "".join(
         f'<line x1="{x}" y1="20" x2="{x}" y2="28" stroke="{ink}" stroke-width="3" stroke-linecap="round"/>'
         f'<line x1="{x}" y1="72" x2="{x}" y2="80" stroke="{ink}" stroke-width="3" stroke-linecap="round"/>'
@@ -79,6 +83,7 @@ def _chip(ink: str, acc: str, paper: str) -> tuple[str, tuple[int, int]]:
 
 
 def _cyclops(ink: str, acc: str, paper: str) -> tuple[str, tuple[int, int]]:
+    """Single-eye bot: round head on a short neck and stand."""
     return (
         f'<rect x="56" y="76" width="16" height="10" rx="3" fill="{ink}"/>'
         f'<rect x="44" y="84" width="40" height="6" rx="3" fill="{ink}"/>'
@@ -89,6 +94,7 @@ def _cyclops(ink: str, acc: str, paper: str) -> tuple[str, tuple[int, int]]:
 
 
 def _promptbot(ink: str, acc: str, paper: str) -> tuple[str, tuple[int, int]]:
+    """Chat bubble with three dots, standing in for a model prompt."""
     return (
         f'<path d="M48 22 H80 a12 12 0 0 1 12 12 V54 a12 12 0 0 1 -12 12 H66 L52 82 V66 H48 '
         f'a12 12 0 0 1 -12 -12 V34 a12 12 0 0 1 12 -12 Z" fill="{ink}"/>'

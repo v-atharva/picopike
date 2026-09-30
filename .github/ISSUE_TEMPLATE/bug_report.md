@@ -4,11 +4,11 @@ about: Something is not working as expected
 labels: bug
 ---
 
+<!-- For security vulnerabilities, follow SECURITY.md instead of opening an issue. -->
+
 ## What happened
 
-Lorem ipsum dolor sit amet.
-
-## Expected behavior
+## What you expected
 
 ## Steps to reproduce
 
@@ -18,4 +18,4 @@ Lorem ipsum dolor sit amet.
 
 - OS:
 - Python:
-- PicoPike version:
+- PicoPike commit:

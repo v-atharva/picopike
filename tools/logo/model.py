@@ -47,6 +47,7 @@ class BrandSpec:
     """A complete, buildable logo definition."""
 
     name: str
+    tagline: str
     concept: int
     mark: MarkSpec
     wordmark: WordmarkSpec
@@ -59,6 +60,7 @@ def load_spec(path: Path) -> BrandSpec:
     raw = json.loads(path.read_text())
     return BrandSpec(
         name=raw["name"],
+        tagline=raw["tagline"],
         concept=raw["concept"],
         mark=MarkSpec(**raw["mark"]),
         wordmark=WordmarkSpec(**raw["wordmark"]),

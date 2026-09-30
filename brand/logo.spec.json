@@ -1,5 +1,6 @@
 {
   "name": "PicoPike",
+  "tagline": "Tiny classifier. Outsized sting.",
   "concept": 16,
   "mark": {
     "target": "chip",

@@ -1,9 +1,9 @@
 <div align="center">
 
-<!-- Replace with the real logo: assets/logo.svg -->
-<img src="assets/logo-placeholder.svg" alt="PicoPike logo" width="120" height="120" />
-
-# PicoPike
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.svg">
+  <img src="assets/logo.svg" alt="PicoPike" width="380">
+</picture>
 
 **Tiny classifier. Outsized sting.**
 

@@ -1,0 +1,5 @@
+# Lanes are added as [lanes.<name>] tables with a `kind` and lane-specific options.
+
+[trace]
+dir = "evals/traces"
+store_text = false

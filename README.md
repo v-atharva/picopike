@@ -8,16 +8,17 @@
 **Tiny classifier. Outsized sting.**
 
 Prompt-injection, jailbreak and harmful-request detection for LLM inputs.
-A small local model screens every request in milliseconds; a larger judge is consulted only when it is unsure.
+Designed so a small local model screens every request in milliseconds and a larger open-weight judge is consulted only when it is unsure.
 
 [![CI](https://github.com/v-atharva/picopike/actions/workflows/ci.yml/badge.svg)](https://github.com/v-atharva/picopike/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/python-3.13-3776AB?logo=python&logoColor=white)
-![Status](https://img.shields.io/badge/status-pre--alpha-orange)
+![Status](https://img.shields.io/badge/status-alpha-orange)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 
 [Overview](#overview) ·
 [Architecture](#architecture) ·
 [Getting started](#getting-started) ·
+[Configuration](#configuration) ·
 [Benchmark](#benchmark) ·
 [Roadmap](#roadmap)
 
@@ -27,26 +28,29 @@ A small local model screens every request in milliseconds; a larger judge is con
 
 ## Overview
 
-PicoPike sits in front of a language model and decides whether an incoming prompt is safe to pass on. It is built as a cascade, so the expensive step only runs when it is needed:
+PicoPike sits in front of a language model and decides whether an incoming prompt is safe to pass on. It is designed as a cascade, so the expensive step only runs when it is needed:
 
-1. **Rules** catch the obvious cases deterministically, in well under a millisecond.
-2. **The pike model**, a compact multilingual encoder with calibrated heads, scores every request on a laptop CPU in single-digit milliseconds.
-3. **An LLM judge** is called only when the pike model's score falls inside an uncertainty band.
+1. **Rules** will catch the obvious cases deterministically, in well under a millisecond.
+2. **The pike model**, a compact multilingual encoder with calibrated heads, will score every request on a laptop CPU, targeting single-digit milliseconds.
+3. **An open-weight LLM judge** will be called only when the pike model's score falls inside an uncertainty band.
 
-The lane outputs are fused into one calibrated probability and an `ALLOW`, `HOLD` or `BLOCK` decision. Every step, with its raw output, timing and cost, is written to a JSONL trace.
+The lane outputs will be fused into one calibrated probability and an `ALLOW`, `HOLD` or `BLOCK` decision. Every step, with its raw output, timing and cost, will be written to a JSONL trace.
 
-> **Status: pre-alpha.** The repository, tooling and CI are in place. The detectors, benchmark and API described below are being built; nothing here is ready for production traffic.
+> **Status: alpha.** The detector interface, lane registry, configuration file and JSONL trace are in place. The detectors, benchmark and API are being built and tested locally; nothing here is ready for production traffic.
 
 ## Why another detector
 
 Strong open guard models already exist. What is missing is evidence that holds up outside English and under attack:
 
-- **Calibrated in every language.** Scores are temperature-scaled per language, so a threshold means the same thing in English, Russian and Chinese.
-- **Honest under attack.** The benchmark reports calibration on adaptively attacked prompts, not only on clean ones.
-- **Cheap by default.** Most traffic never leaves the machine; the judge is a fallback, not the main path.
-- **Benchmark first.** Every detector, including PicoPike, is a row in the same multi-axis leaderboard. If a larger baseline wins on accuracy, the report says so and shows the latency and cost trade-off.
+- **Calibrated, and honest about scope.** English comes first. Scores will be temperature-scaled per language, so adding Russian and Chinese later will not change what a threshold means.
+- **Honest under attack.** The benchmark will report calibration on adaptively attacked prompts, not only on clean ones.
+- **Cheap by default.** Most traffic will never leave the machine; the judge is a fallback, not the main path.
+- **Open-weight throughout.** Every model PicoPike runs, including the judge, will have open weights and can be self-hosted.
+- **Benchmark first.** Every detector, including PicoPike, will be a row in the same multi-axis leaderboard. If a larger baseline wins on accuracy, the report will say so and show the latency and cost trade-off.
 
 ## Architecture
+
+This is the target design. Latencies are budgets, not measurements; the leaderboard will report measured numbers.
 
 ```text
 request ─▶ api      POST /v1/classify {text, mode, lang?}
@@ -64,7 +68,7 @@ offline:   bench    datasets → adaptive attacks → cached detector runs → m
            train    pike heads · fusion stacker · per-language calibration
 ```
 
-Two serving modes: `fast` runs rules and the pike model only; `auto` adds the judge for uncertain requests, within a budget guard. A lane that fails or times out degrades the result explicitly and never fails the request.
+Two planned serving modes: `fast` runs rules and the pike model only; `auto` adds the judge for uncertain requests, within a budget guard. A lane that fails or times out will degrade the result explicitly and never fail the request.
 
 ## Getting started
 
@@ -79,6 +83,10 @@ uv run pytest
 
 The command line (`picopike serve`, `picopike bench run`, `picopike bench report`) arrives with phase 1.
 
+## Configuration
+
+`picopike.toml` at the repository root lists the detection lanes and where traces are written. By default a trace stores a SHA-256 of each input, not the text itself; set `store_text = true` under `[trace]` to keep the text on your own machine.
+
 ## Benchmark
 
 No results yet. The leaderboard will be produced by `picopike bench report` from cached detector runs, so every number in it is reproducible without re-spending API budget.
@@ -89,15 +97,15 @@ No results yet. The leaderboard will be produced by `picopike bench report` from
 | Over-defense | Share of safe-but-suspicious prompts that are blocked |
 | Calibration | Expected calibration error on clean and on attacked prompts |
 | Speed and cost | p50 and p99 latency on an Apple M2 CPU; cost per 1,000 decisions |
-| Breakdown | Per dataset and per language (English, Russian, Chinese) |
+| Breakdown | Per dataset; English first, Russian and Chinese next |
 
-Evaluation sets are held out from training, near-duplicates are removed, and the report prints the remaining train/test overlap. Datasets keep their own licences and are never redistributed from this repository.
+Evaluation sets will be held out from training, near-duplicates removed, and the report will print the remaining train/test overlap. Datasets keep their own licences and are never redistributed from this repository.
 
 ## Project layout
 
 ```text
 .
-├── src/picopike/   the library: detectors, fusion, API, trace
+├── src/picopike/   the library: detector contract, lane registry, config and trace so far
 ├── tests/          unit tests (CI) and integration tests (local, -m integration)
 ├── evals/          benchmark datasets and reports (contents are not committed)
 ├── brand/          logo spec and bundled fonts
@@ -108,7 +116,7 @@ Evaluation sets are held out from training, near-duplicates are removed, and the
 
 ## Roadmap
 
-- [ ] **Phase 1: detect and measure.** Detector protocol, rules, the pike model, the LLM judge, fusion and calibration, the serving API, and the multi-axis benchmark with adaptive attacks.
+- [ ] **Phase 1: detect and measure (English).** Detector protocol, rules, the pike model, an open-weight LLM judge, fusion and calibration, a local serving API, and the multi-axis benchmark with adaptive attacks. Russian and Chinese follow once English is proven.
 - [ ] **Phase 2: review and improve.** A review dashboard for held decisions, with a label-and-retrain loop.
 - [ ] **Phase 3: watch the reasoning.** Monitoring the chain-of-thought of open reasoning models, not just their inputs.
 

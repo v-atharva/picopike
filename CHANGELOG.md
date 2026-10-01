@@ -12,6 +12,7 @@ All notable changes to this project are documented here. The format follows
 - Logo: light and dark lockups and icons built from `brand/logo.spec.json`, with a drift check in CI.
 - Outlined wordmark (bundled Inter, SIL Open Font License), favicon set, and a 1280x640 social preview.
 - Apache-2.0 licence.
+- Detector protocol and lane result contract, a lane registry built from `picopike.toml`, and an append-only JSONL trace (schema 1, hash-only by default).
 
 ### Changed
 

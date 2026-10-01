@@ -21,6 +21,8 @@ evals/datasets/*
 !evals/datasets/.gitkeep
 evals/reports/*
 !evals/reports/.gitkeep
+evals/traces/*
+!evals/traces/.gitkeep
 *.safetensors
 *.onnx
 *.bin

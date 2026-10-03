@@ -9,10 +9,10 @@ All notable changes to this project are documented here. The format follows
 ### Added
 
 - Project scaffold: `src/` package layout, tests, evaluation folders, and CI with ruff, strict mypy and pytest.
-- Logo: light and dark lockups and icons built from `brand/logo.spec.json`, with a drift check in CI.
-- Outlined wordmark (bundled Inter, SIL Open Font License), favicon set, and a 1280x640 social preview.
 - Apache-2.0 licence.
 - Detector protocol and lane result contract, a lane registry built from `picopike.toml`, and an append-only JSONL trace (schema 1, hash-only by default).
+- Input normalizer that strips invisible and format characters, folds look-alike letters and decodes base64, hex and rot13 payloads in place, with stated work bounds, completeness reporting and property tests.
+- Rules-based hard guard that scans the raw and normalized text and reports evidence rather than a probability. Full chat-template role headers, judge-envelope forgeries and incompletely inspected input are never allowed; other structural, phrase and obfuscation signals are reported for later stages.
 
 ### Changed
 

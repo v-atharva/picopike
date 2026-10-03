@@ -1,9 +1,6 @@
 <div align="center">
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.svg">
-  <img src="assets/logo.svg" alt="PicoPike" width="380">
-</picture>
+<h1>PicoPike</h1>
 
 **Tiny classifier. Outsized sting.**
 
@@ -30,13 +27,13 @@ Designed so a small local model screens every request in milliseconds and a larg
 
 PicoPike sits in front of a language model and decides whether an incoming prompt is safe to pass on. It is designed as a cascade, so the expensive step only runs when it is needed:
 
-1. **Rules** will catch the obvious cases deterministically, in well under a millisecond.
+1. **Rules** run deterministically after undoing common obfuscation (invisible characters, look-alike letters, encoded payloads). Full chat-template role headers, judge-envelope forgeries and incompletely inspected input are never allowed; other structural, phrase and obfuscation signals feed the later stages. Typical prompts take about a tenth of a millisecond.
 2. **The pike model**, a compact multilingual encoder with calibrated heads, will score every request on a laptop CPU, targeting single-digit milliseconds.
 3. **An open-weight LLM judge** will be called only when the pike model's score falls inside an uncertainty band.
 
 The lane outputs will be fused into one calibrated probability and an `ALLOW`, `HOLD` or `BLOCK` decision. Every step, with its raw output, timing and cost, will be written to a JSONL trace.
 
-> **Status: alpha.** The detector interface, lane registry, configuration file and JSONL trace are in place. The detectors, benchmark and API are being built and tested locally; nothing here is ready for production traffic.
+> **Status: alpha.** The detector interface, lane registry, configuration file, JSONL trace, input normalizer and rules-based hard guard are in place. The detectors, benchmark and API are being built and tested locally; nothing here is ready for production traffic.
 
 ## Why another detector
 
@@ -105,12 +102,9 @@ Evaluation sets will be held out from training, near-duplicates removed, and the
 
 ```text
 .
-├── src/picopike/   the library: detector contract, lane registry, config and trace so far
+├── src/picopike/   the library: detector contract, registry, normalizer, hard guard, config and trace so far
 ├── tests/          unit tests (CI) and integration tests (local, -m integration)
 ├── evals/          benchmark datasets and reports (contents are not committed)
-├── brand/          logo spec and bundled fonts
-├── tools/          repository tooling, including the logo builder
-├── assets/         logo, icons, favicons and the social preview
 └── scripts/        developer utilities
 ```
 
@@ -130,4 +124,4 @@ Please report vulnerabilities, and inputs that get past the detector, as describ
 
 ## License
 
-Apache License 2.0; see [LICENSE](LICENSE). Datasets used by the benchmark keep their own licences and are not redistributed here. The bundled Inter font is under the SIL Open Font License ([brand/fonts/OFL.txt](brand/fonts/OFL.txt)).
+Apache License 2.0; see [LICENSE](LICENSE). Datasets used by the benchmark keep their own licences and are not redistributed here.

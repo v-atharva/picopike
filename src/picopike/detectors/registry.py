@@ -38,7 +38,12 @@ class Registry:
                 raise ConfigError(
                     f"lane {lane.name!r}: unknown kind {lane.kind!r} (known: {known})"
                 )
-            detector = factory(lane.name, lane.options)
+            try:
+                detector = factory(lane.name, lane.options)
+            except Exception as exc:
+                # Keep the original type so callers can still catch it; add which lane failed.
+                exc.add_note(f"while building lane {lane.name!r} (kind {lane.kind!r})")
+                raise
             if not isinstance(detector, Detector):
                 raise TypeError(f"factory for kind {lane.kind!r} did not return a Detector")
             if not inspect.iscoroutinefunction(detector.detect):

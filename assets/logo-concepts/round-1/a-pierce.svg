@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 130" width="400" height="130" role="img" aria-label="PicoPike">
-  <g transform="translate(14,22)">
-    <path d="M50 14 L86 24 V54 C86 76 70 90 50 96 C30 90 14 76 14 54 V24 Z" fill="none" stroke="#0F172A" stroke-width="5" stroke-linejoin="round"/>
-    <line x1="50" y1="76" x2="50" y2="22" stroke="#F59E0B" stroke-width="4" stroke-linecap="round"/>
-    <polygon points="50,-14 57,20 43,20" fill="#F59E0B"/>
-  </g>
-  <text x="128" y="80" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="46" fill="#0F172A" letter-spacing="-1"><tspan font-weight="300">Pico</tspan><tspan font-weight="800">Pike</tspan></text>
-</svg>

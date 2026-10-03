@@ -7,11 +7,17 @@ import math
 from collections.abc import Mapping
 from typing import Any, Protocol, TypedDict, runtime_checkable
 
+from picopike.inputs import Prepared
+
 ANY_LANGUAGE = "*"
 
 
 class LaneResult(TypedDict):
     """One lane's verdict on one input, kept verbatim in the trace for replay.
+
+    ``score`` is P(unsafe) for lanes that forecast one. It is None when the lane failed, was
+    skipped, or reports evidence rather than a probability, as rule lanes do: their matches go in
+    ``labels`` and any policy constraint in ``raw``.
 
     ``raw`` and ``error`` are written to the trace even when text storage is off, so they must
     never contain the input or excerpts of it.
@@ -29,7 +35,7 @@ class LaneResult(TypedDict):
 
 @runtime_checkable
 class Detector(Protocol):
-    """A lane: scores one input for P(unsafe) and never raises for a bad input.
+    """A lane: reports on one input and never raises for a bad input.
 
     ``detect`` must not block the event loop; run blocking work such as model inference in a thread.
     """
@@ -38,6 +44,13 @@ class Detector(Protocol):
     languages: frozenset[str]
 
     async def detect(self, text: str, *, lang: str | None) -> LaneResult: ...
+
+
+@runtime_checkable
+class PreparedDetector(Detector, Protocol):
+    """A lane that can score the request's shared normalized view instead of redoing the work."""
+
+    async def detect_prepared(self, prepared: Prepared) -> LaneResult: ...
 
 
 class InvalidLaneResult(ValueError):

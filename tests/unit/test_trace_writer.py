@@ -108,7 +108,7 @@ def test_file_follows_the_utc_date_not_the_local_one(tmp_path: Path) -> None:
 
 
 def test_awkward_text_stays_on_one_line_and_round_trips(tmp_path: Path) -> None:
-    text = "line one\nline two ​ \ud800 \U0001f600"
+    text = "line one\nline two \u200b \ud800 \U0001f600"
     r = record(text, store_text=True)
     path = TraceWriter(tmp_path).write(r)
     lines = path.read_text(encoding="ascii").splitlines()

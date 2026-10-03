@@ -102,3 +102,14 @@ def test_languages_must_be_a_frozenset() -> None:
     r.register("stringy", lambda name, options: detector)
     with pytest.raises(TypeError, match=r"stringy.*frozenset"):
         r.build(lanes(LaneConfig(name="x", kind="stringy")))
+
+
+def test_factory_errors_name_the_lane() -> None:
+    def broken(name: str, options: Mapping[str, Any]) -> Detector:
+        raise FileNotFoundError("model.onnx")
+
+    r = Registry()
+    r.register("model", broken)
+    with pytest.raises(FileNotFoundError) as info:
+        r.build(lanes(LaneConfig(name="pike", kind="model")))
+    assert any("'pike'" in note for note in info.value.__notes__)

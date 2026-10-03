@@ -10,7 +10,9 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 
 def test_repository_config_loads_with_hash_only_traces() -> None:
     config = load_config(REPO_ROOT / "picopike.toml")
-    assert config.lanes == {}
+    assert list(config.lanes) == ["hard_guard"]
+    assert config.lanes["hard_guard"].kind == "hard_guard"
+    assert config.lanes["hard_guard"].options == {}
     assert config.trace.store_text is False
     assert config.trace.dir == REPO_ROOT / "evals" / "traces"
 

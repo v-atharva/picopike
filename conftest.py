@@ -1,1 +1,1 @@
-"""Root conftest: puts the repository root on ``sys.path`` so tests can import ``tools``."""
+"""Root conftest: puts repository root on ``sys.path`` for test imports from ``tests``."""

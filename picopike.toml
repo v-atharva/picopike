@@ -1,5 +1,8 @@
 # Lanes are added as [lanes.<name>] tables with a `kind` and lane-specific options.
 
+[lanes.hard_guard]
+kind = "hard_guard"
+
 [trace]
 dir = "evals/traces"
 store_text = false
